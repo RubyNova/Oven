@@ -4,6 +4,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Oven.Bot", "Oven.Bot\Oven.B
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Oven.CLI", "Oven.CLI\Oven.CLI.csproj", "{D50325E9-5D84-4FC8-A8A6-0557AE96051E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Oven.Data", "Oven.Data\Oven.Data.csproj", "{C205A36B-A78E-46A5-AF6A-6A5965C03D46}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Oven.Tests", "Oven.Tests\Oven.Tests.csproj", "{74CE6A55-353B-468A-B10B-2B73A5B3666A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +22,13 @@ Global
 		{D50325E9-5D84-4FC8-A8A6-0557AE96051E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D50325E9-5D84-4FC8-A8A6-0557AE96051E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D50325E9-5D84-4FC8-A8A6-0557AE96051E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C205A36B-A78E-46A5-AF6A-6A5965C03D46}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C205A36B-A78E-46A5-AF6A-6A5965C03D46}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C205A36B-A78E-46A5-AF6A-6A5965C03D46}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C205A36B-A78E-46A5-AF6A-6A5965C03D46}.Release|Any CPU.Build.0 = Release|Any CPU
+		{74CE6A55-353B-468A-B10B-2B73A5B3666A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{74CE6A55-353B-468A-B10B-2B73A5B3666A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{74CE6A55-353B-468A-B10B-2B73A5B3666A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{74CE6A55-353B-468A-B10B-2B73A5B3666A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
