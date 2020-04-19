@@ -17,6 +17,7 @@ namespace Oven.Bot
         {
             _client = new DiscordSocketClient();
             var services = ConfigureServices();
+            services.GetRequiredService<LoggingService>(); //this is needed to initialise the logger.
             await services.GetRequiredService<CommandHandlingService>().InitialiseAsync(services).ConfigureAwait(false);
             await _client.LoginAsync(TokenType.Bot, Environment.GetEnvironmentVariable("BOT_TOKEN")).ConfigureAwait(false);
             await _client.StartAsync().ConfigureAwait(false);
