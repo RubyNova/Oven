@@ -8,6 +8,7 @@ namespace Oven.CLI
     {
         static async Task Main(string[] args)
         {
+            Console.WriteLine("Launching!");
             var tcs = new TaskCompletionSource<bool>();
 
             Console.CancelKeyPress += (s, e) =>
@@ -19,6 +20,7 @@ namespace Oven.CLI
             var t = new OvenDiscordClient().LaunchAsync();
 
             await Task.WhenAll(t, tcs.Task);
+            Console.WriteLine(t.Exception);
         }
     }
 }
