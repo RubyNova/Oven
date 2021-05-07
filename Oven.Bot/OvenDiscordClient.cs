@@ -1,34 +1,46 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
-using Discord;
-using Discord.Commands;
-using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Oven.Bot.Groups;
 using Oven.Bot.Services;
+using Remora.Commands.Extensions;
+using Remora.Discord.Commands.Extensions;
+using Remora.Discord.Gateway;
+using Remora.Discord.Gateway.Extensions;
 
 namespace Oven.Bot
 {
     public class OvenDiscordClient
     {
-        private DiscordSocketClient _client;
-
+        private IServiceProvider? _collection;
+        
         public async Task LaunchAsync()
         {
-            _client = new DiscordSocketClient();
-            var services = ConfigureServices();
-            services.GetRequiredService<LoggingService>(); //this is needed to initialise the logger. There's probably a nicer way to do this, but prototype code, so whatever.
-            await services.GetRequiredService<CommandHandlingService>().InitialiseAsync(services).ConfigureAwait(false);
-            await _client.LoginAsync(TokenType.Bot, Environment.GetEnvironmentVariable("BOT_TOKEN")).ConfigureAwait(false);
-            await _client.StartAsync().ConfigureAwait(false);
+            _collection = ConfigureServices();
+            await _collection.GetRequiredService<DiscordGatewayClient>().RunAsync(CancellationToken.None);
         }
 
         private IServiceProvider ConfigureServices()
         {
+            var token = Environment.GetEnvironmentVariable("BOT_TOKEN");
+            if (token is null)
+            {
+                throw new ArgumentNullException(nameof(token));
+            }
+
             return new ServiceCollection()
-                .AddSingleton(_client)
-                .AddSingleton<CommandService>()
-                .AddSingleton<CommandHandlingService>()
-                .AddSingleton<LoggingService>()
+                .AddLogging
+                (
+                    x => x.AddConsole()
+                        .AddFilter("System.Net.Http.HttpClient.*.LogicalHandler", LogLevel.Warning)
+                        .AddFilter("System.Net.Http.HttpClient.*.ClientHandler", LogLevel.Warning)
+                )
+                .AddDiscordGateway(_ => token)
+                .AddDiscordCommands()
+                .AddCommandGroup<TestGroup>()
+                .AddCommandGroup<VodConfiguratorGroup>()
                 .AddHttpClient()
                 .AddTransient<IVodConfigurationService, JsonVodConfigurationService>()
                 .BuildServiceProvider();

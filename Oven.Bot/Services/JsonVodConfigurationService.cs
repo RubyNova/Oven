@@ -1,11 +1,10 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Discord;
 using Oven.Bot.Models;
+using Remora.Discord.API.Abstractions.Objects;
 
 namespace Oven.Bot.Services
 {
@@ -18,9 +17,14 @@ namespace Oven.Bot.Services
             _factory = factory;
         }
         
-        public async Task<(bool IsSuccess, string? ErrorMessage, VodConfigurationModel? VodConfiguration)> TryParseVodJsonConfigurationAsync(Attachment first)
+        public async Task<(bool IsSuccess, string? ErrorMessage, VodConfigurationModel? VodConfiguration)> TryParseVodJsonConfigurationAsync(IAttachment? first)
         {
             Stream? response = null;
+
+            if (first is null)
+            {
+                return (false, "FileNotFound", null);
+            }
             
             try
             {

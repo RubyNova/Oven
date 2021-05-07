@@ -1,39 +1,49 @@
 using System;
-using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Discord.Commands;
+using Oven.Bot.Errors;
 using Oven.Bot.Models;
 using Oven.Bot.Services;
+using Remora.Commands.Attributes;
+using Remora.Commands.Groups;
+using Remora.Discord.API.Abstractions.Rest;
+using Remora.Discord.Commands.Contexts;
+using Remora.Results;
 
-namespace Oven.Bot.Modules
+namespace Oven.Bot.Groups
 {
     [Group("vodconfig")]
-    public class VodConfiguratorModule : ModuleBase<SocketCommandContext>
+    public class VodConfiguratorGroup : CommandGroup
     {
+        private readonly IDiscordRestChannelAPI _channelApi;
+        private readonly MessageContext _context;
         private readonly IVodConfigurationService _configurationService;
 
-        public VodConfiguratorModule(IVodConfigurationService configurationService)
+        public VodConfiguratorGroup(IDiscordRestChannelAPI channelApi, MessageContext context,
+            IVodConfigurationService configurationService)
         {
+            _channelApi = channelApi;
+            _context = context;
             _configurationService = configurationService;
         }
 
         [Command("new")]
-        public async Task AddNewVodConfigurationAsync()
+        public async Task<Result> AddNewVodConfigurationAsync()
         {
-            if (Context.Message.Attachments.Any(x => x.Filename.Contains(".json")))
+            if (_context.Message.Attachments.HasValue)
             {
-                await ReplyAsync("It appears you have given me an existing JSON configuration! Validating...");
+                await _channelApi.CreateMessageAsync(_context.ChannelID,
+                    "It appears you may have given me an existing JSON configuration! Validating...");
 
                 var result = await _configurationService.TryParseVodJsonConfigurationAsync(
-                    Context.Message.Attachments.First(x => x.Filename.Contains(".json")));
+                    _context.Message.Attachments.Value.FirstOrDefault(x => x.Filename.Contains(".json")));
 
                 if (!result.IsSuccess)
                 {
-                    await ReplyAsync(
+                    await _channelApi.CreateMessageAsync(_context.ChannelID,
                         $"JSON configuration failed! Reason: {result.ErrorMessage}");
-                    return;
+                    return new UserError(result.ErrorMessage ?? "Malformed or Nonexistent JSON. No specific error returned.");
                 }
 
                 var vodConfiguration = result.VodConfiguration;
@@ -100,15 +110,16 @@ namespace Oven.Bot.Modules
                     sb.AppendLine();
                 }
 
-                await ReplyAsync(sb.ToString());
+                await _channelApi.CreateMessageAsync(_context.ChannelID, sb.ToString());
                 _configurationService.Save(vodConfiguration);
-                return;
+                return Result.FromSuccess();
             }
-            
+
             //TODO: Implement Q&A format
 
-            await ReplyAsync(
+            await _channelApi.CreateMessageAsync(_context.ChannelID,
                 "It appears no configuration file has been provided. See `help vodconfig add` for configuration file instructions.");
+            return new UserError("No vodconfig provided.");
         }
     }
 }
