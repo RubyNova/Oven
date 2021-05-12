@@ -1,10 +1,12 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Oven.Bot.Groups;
 using Oven.Bot.Services;
+using Oven.Data;
 using Remora.Commands.Extensions;
 using Remora.Discord.Commands.Extensions;
 using Remora.Discord.Gateway;
@@ -43,6 +45,8 @@ namespace Oven.Bot
                 .AddCommandGroup<VodConfiguratorGroup>()
                 .AddHttpClient()
                 .AddTransient<IVodConfigurationService, JsonVodConfigurationService>()
+                .AddDbContext<QuestionaireContext>(options =>
+                    options.UseNpgsql("ConnectionStringHere"))
                 .BuildServiceProvider();
         }
     }

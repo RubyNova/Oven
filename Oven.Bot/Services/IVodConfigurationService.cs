@@ -1,13 +1,13 @@
 using System.Threading.Tasks;
-using Oven.Bot.Models;
+using Oven.Data.Models;
 using Remora.Discord.API.Abstractions.Objects;
 
 namespace Oven.Bot.Services
 {
     public interface IVodConfigurationService
     {
-        Task<(bool IsSuccess, string? ErrorMessage, VodConfigurationModel? VodConfiguration)>
+        Task<(bool IsSuccess, string? ErrorMessage, VodConfiguration? VodConfiguration)>
             TryParseVodJsonConfigurationAsync(IAttachment? first);
-        void Save(VodConfigurationModel vodConfiguration);
+        void Save(VodConfiguration vodConfiguration);
     }
 }

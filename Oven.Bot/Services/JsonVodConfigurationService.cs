@@ -3,7 +3,7 @@ using System.IO;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Oven.Bot.Models;
+using Oven.Data.Models;
 using Remora.Discord.API.Abstractions.Objects;
 
 namespace Oven.Bot.Services
@@ -17,7 +17,7 @@ namespace Oven.Bot.Services
             _factory = factory;
         }
         
-        public async Task<(bool IsSuccess, string? ErrorMessage, VodConfigurationModel? VodConfiguration)> TryParseVodJsonConfigurationAsync(IAttachment? first)
+        public async Task<(bool IsSuccess, string? ErrorMessage, VodConfiguration? VodConfiguration)> TryParseVodJsonConfigurationAsync(IAttachment? first)
         {
             Stream? response = null;
 
@@ -39,7 +39,7 @@ namespace Oven.Bot.Services
 
             try
             {
-                var modelResult = await JsonSerializer.DeserializeAsync<VodConfigurationModel>(response);
+                var modelResult = await JsonSerializer.DeserializeAsync<VodConfiguration>(response);
                 await response.DisposeAsync();
                 return (true, null, modelResult);
             }
@@ -51,7 +51,7 @@ namespace Oven.Bot.Services
             }
         }
 
-        public void Save(VodConfigurationModel vodConfiguration)
+        public void Save(VodConfiguration vodConfiguration)
         {
             
         }
