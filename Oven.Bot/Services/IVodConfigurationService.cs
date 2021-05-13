@@ -8,6 +8,6 @@ namespace Oven.Bot.Services
     {
         Task<(bool IsSuccess, string? ErrorMessage, VodConfiguration? VodConfiguration)>
             TryParseVodJsonConfigurationAsync(IAttachment? first);
-        void Save(VodConfiguration vodConfiguration);
+        Task SaveAsync(VodConfiguration vodConfiguration);
     }
 }

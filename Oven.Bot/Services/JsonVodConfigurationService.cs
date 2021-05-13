@@ -3,6 +3,7 @@ using System.IO;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Oven.Data;
 using Oven.Data.Models;
 using Remora.Discord.API.Abstractions.Objects;
 
@@ -16,7 +17,7 @@ namespace Oven.Bot.Services
         {
             _factory = factory;
         }
-        
+
         public async Task<(bool IsSuccess, string? ErrorMessage, VodConfiguration? VodConfiguration)> TryParseVodJsonConfigurationAsync(IAttachment? first)
         {
             Stream? response = null;
@@ -25,7 +26,7 @@ namespace Oven.Bot.Services
             {
                 return (false, "FileNotFound", null);
             }
-            
+
             try
             {
                 response = await _factory.CreateClient().GetStreamAsync(first.Url);
@@ -51,9 +52,19 @@ namespace Oven.Bot.Services
             }
         }
 
-        public void Save(VodConfiguration vodConfiguration)
+        public async Task SaveAsync(VodConfiguration vodConfiguration)
         {
-            
+            using var db = new QuestionaireContext();
+
+            var result = await db.VodConfigurations.FindAsync(vodConfiguration.GameName);
+            if (result is not null)
+            {
+                vodConfiguration.VodConfigurationId = result.VodConfigurationId;
+                db.Update(vodConfiguration);
+            }
+
+            db.Add(vodConfiguration);
+            await db.SaveChangesAsync();
         }
     }
 }

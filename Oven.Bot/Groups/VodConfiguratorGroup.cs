@@ -48,6 +48,8 @@ namespace Oven.Bot.Groups
 
                 var vodConfiguration = result.VodConfiguration;
 
+                await _configurationService.SaveAsync(vodConfiguration!);
+
                 var sb = new StringBuilder();
                 sb.AppendLine("**Configuration successfully validated!**");
                 sb.AppendLine("**This is what I have understood from your configuration file:**");
@@ -111,7 +113,6 @@ namespace Oven.Bot.Groups
                 }
 
                 await _channelApi.CreateMessageAsync(_context.ChannelID, sb.ToString());
-                _configurationService.Save(vodConfiguration);
                 return Result.FromSuccess();
             }
 
