@@ -3,8 +3,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Oven.Bot.Errors;
-using Oven.Bot.Models;
 using Oven.Bot.Services;
+using Oven.Data.Models;
 using Remora.Commands.Attributes;
 using Remora.Commands.Groups;
 using Remora.Discord.API.Abstractions.Rest;
@@ -48,6 +48,8 @@ namespace Oven.Bot.Groups
 
                 var vodConfiguration = result.VodConfiguration;
 
+                await _configurationService.SaveAsync(vodConfiguration!);
+
                 var sb = new StringBuilder();
                 sb.AppendLine("**Configuration successfully validated!**");
                 sb.AppendLine("**This is what I have understood from your configuration file:**");
@@ -64,17 +66,17 @@ namespace Oven.Bot.Groups
                     sb.AppendLine(":**");
                     sb.AppendLine(question.QuestionText);
                     sb.AppendLine("**Answer Kind:**");
-                    sb.AppendLine(question.UserAnswerKind.ToString());
+                    sb.AppendLine(question.QuestionType.ToString());
 
-                    switch (question.UserAnswerKind)
+                    switch (question.QuestionType)
                     {
-                        case AnswerKind.Text:
+                        case QuestionType.Text:
                             break;
-                        case AnswerKind.Integer:
+                        case QuestionType.Integer:
                             break;
-                        case AnswerKind.Decimal:
+                        case QuestionType.Decimal:
                             break;
-                        case AnswerKind.CustomScale:
+                        case QuestionType.CustomScale:
                             sb.AppendLine("**Scale Values:**");
 
                             sb.Append(question.MinimumScale!.Value);
@@ -82,9 +84,9 @@ namespace Oven.Bot.Groups
                             sb.Append(question.MaximumScale!.Value);
                             sb.AppendLine(" Maximum.");
                             break;
-                        case AnswerKind.Percentage:
+                        case QuestionType.Percentage:
                             break;
-                        case AnswerKind.MultipleChoice:
+                        case QuestionType.MultipleChoice:
                             sb.AppendLine("**Answer Options:**");
                             foreach (var answerOption in question.AnswerOptions!)
                             {
@@ -101,7 +103,7 @@ namespace Oven.Bot.Groups
                             }
 
                             break;
-                        case AnswerKind.Url:
+                        case QuestionType.Url:
                             break;
                         default:
                             throw new ArgumentOutOfRangeException();
@@ -111,7 +113,6 @@ namespace Oven.Bot.Groups
                 }
 
                 await _channelApi.CreateMessageAsync(_context.ChannelID, sb.ToString());
-                _configurationService.Save(vodConfiguration);
                 return Result.FromSuccess();
             }
 
