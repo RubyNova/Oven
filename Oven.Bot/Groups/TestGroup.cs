@@ -4,6 +4,7 @@ using Remora.Commands.Groups;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.Commands.Contexts;
+using Remora.Discord.Commands.Extensions;
 using Remora.Results;
 
 namespace Oven.Bot.Groups
@@ -20,6 +21,14 @@ namespace Oven.Bot.Groups
         }
 
         [Command("ping")]
-        public Task<Result<IMessage>> PingAsync() => _channelApi.CreateMessageAsync(_context.ChannelID, "Pong!");
+        public async Task<Result<IMessage>> PingAsync()
+        {
+            if (_context.TryGetChannelID(out var channel))
+            {
+                return await _channelApi.CreateMessageAsync(channel, "Pong!");
+            }
+
+            return new InvalidOperationError("Unable to obrain Channel ID for ping response.");
+        }
     }
 }

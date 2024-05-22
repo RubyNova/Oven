@@ -33,7 +33,7 @@ namespace Oven.Bot.Groups
         {
             if (_context.Message.Attachments.HasValue)
             {
-                await _channelApi.CreateMessageAsync(_context.ChannelID,
+                await _channelApi.CreateMessageAsync(_context.Message.ChannelID.Value,
                     "It appears you may have given me an existing JSON configuration! Validating...");
 
                 var result = await _configurationService.TryParseVodJsonConfigurationAsync(
@@ -41,7 +41,7 @@ namespace Oven.Bot.Groups
 
                 if (!result.IsSuccess)
                 {
-                    await _channelApi.CreateMessageAsync(_context.ChannelID,
+                    await _channelApi.CreateMessageAsync(_context.Message.ChannelID.Value,
                         $"JSON configuration failed! Reason: {result.ErrorMessage}");
                     return new UserError(result.ErrorMessage ?? "Malformed or Nonexistent JSON. No specific error returned.");
                 }
@@ -110,14 +110,14 @@ namespace Oven.Bot.Groups
                     sb.AppendLine();
                 }
 
-                await _channelApi.CreateMessageAsync(_context.ChannelID, sb.ToString());
+                await _channelApi.CreateMessageAsync(_context.Message.ChannelID.Value, sb.ToString());
                 _configurationService.Save(vodConfiguration);
                 return Result.FromSuccess();
             }
 
             //TODO: Implement Q&A format
 
-            await _channelApi.CreateMessageAsync(_context.ChannelID,
+            await _channelApi.CreateMessageAsync(_context.Message.ChannelID.Value,
                 "It appears no configuration file has been provided. See `help vodconfig add` for configuration file instructions.");
             return new UserError("No vodconfig provided.");
         }

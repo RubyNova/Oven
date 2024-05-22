@@ -30,20 +30,25 @@ namespace Oven.Bot
                 throw new ArgumentNullException(nameof(token));
             }
 
-            return new ServiceCollection()
-                .AddLogging
-                (
-                    x => x.AddConsole()
-                        .AddFilter("System.Net.Http.HttpClient.*.LogicalHandler", LogLevel.Warning)
-                        .AddFilter("System.Net.Http.HttpClient.*.ClientHandler", LogLevel.Warning)
-                )
-                .AddDiscordGateway(_ => token)
-                .AddDiscordCommands()
-                .AddCommandGroup<TestGroup>()
-                .AddCommandGroup<VodConfiguratorGroup>()
-                .AddHttpClient()
-                .AddTransient<IVodConfigurationService, JsonVodConfigurationService>()
-                .BuildServiceProvider();
+            var collection = new ServiceCollection();
+
+            collection.AddLogging
+            (
+                x => x.AddConsole()
+                    .AddFilter("System.Net.Http.HttpClient.*.LogicalHandler", LogLevel.Warning)
+                    .AddFilter("System.Net.Http.HttpClient.*.ClientHandler", LogLevel.Warning)
+            )
+            .AddHttpClient()
+            .AddTransient<IVodConfigurationService, JsonVodConfigurationService>();
+
+            collection
+            .AddDiscordGateway(_ => token)
+            .AddDiscordCommands()
+            .AddCommandTree()
+            .WithCommandGroup<TestGroup>()
+            .WithCommandGroup<VodConfiguratorGroup>();
+
+            return collection.BuildServiceProvider();
         }
     }
 }
