@@ -17,10 +17,10 @@ namespace Oven.Bot.Groups
     public class VodConfiguratorGroup : CommandGroup
     {
         private readonly IDiscordRestChannelAPI _channelApi;
-        private readonly MessageContext _context;
+        private readonly IMessageContext _context;
         private readonly IVodConfigurationService _configurationService;
 
-        public VodConfiguratorGroup(IDiscordRestChannelAPI channelApi, MessageContext context,
+        public VodConfiguratorGroup(IDiscordRestChannelAPI channelApi, IMessageContext context,
             IVodConfigurationService configurationService)
         {
             _channelApi = channelApi;
