@@ -25,7 +25,7 @@ namespace Oven.Bot.Groups
         {
             if (_context.TryGetChannelID(out var channel))
             {
-                return await _channelApi.CreateMessageAsync(channel, "Pong!");
+                await _channelApi.CreateMessageAsync(channel, "Pong!");
             }
 
             return new InvalidOperationError("Unable to obrain Channel ID for ping response.");
