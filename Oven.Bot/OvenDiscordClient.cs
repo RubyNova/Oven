@@ -19,8 +19,6 @@ namespace Oven.Bot;
 
 public class OvenDiscordClient
 {
-    private IServiceProvider? _collection;
-
     public async Task LaunchAsync()
     {
         var host = CreateHostBuilder([])
