@@ -10,6 +10,7 @@ using Remora.Discord.Commands.Extensions;
 using Remora.Discord.Commands.Services;
 using Remora.Discord.Gateway;
 using Microsoft.Extensions.Configuration;
+using Oven.Data;
 using Remora.Discord.Hosting.Extensions;
 using Remora.Discord.API.Abstractions.Gateway.Commands;
 using Remora.Rest.Core;
@@ -65,6 +66,7 @@ public class OvenDiscordClient
 
         services.AddDiscordCommands(true)
         .AddTransient<IVodConfigurationService, JsonVodConfigurationService>()
+        .AddOvenDbContext()
         .AddHttpClient()
         .AddCommandTree()
         .WithCommandGroup<TestGroup>()

@@ -3,7 +3,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Oven.Bot.Errors;
-using Oven.Bot.Models;
+using Oven.Data.Models;
 using Oven.Bot.Services;
 using Remora.Commands.Attributes;
 using Remora.Commands.Groups;
@@ -11,115 +11,140 @@ using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.Commands.Contexts;
 using Remora.Results;
 
-namespace Oven.Bot.Groups
+namespace Oven.Bot.Groups;
+
+[Group("vodconfig")]
+public class VodConfiguratorGroup : CommandGroup
 {
-    [Group("vodconfig")]
-    public class VodConfiguratorGroup : CommandGroup
+    private readonly IDiscordRestChannelAPI _channelApi;
+    private readonly IMessageContext _context;
+    private readonly IVodConfigurationService _configurationService;
+
+    public VodConfiguratorGroup(IDiscordRestChannelAPI channelApi, IMessageContext context,
+        IVodConfigurationService configurationService)
     {
-        private readonly IDiscordRestChannelAPI _channelApi;
-        private readonly IMessageContext _context;
-        private readonly IVodConfigurationService _configurationService;
+        _channelApi = channelApi;
+        _context = context;
+        _configurationService = configurationService;
+    }
 
-        public VodConfiguratorGroup(IDiscordRestChannelAPI channelApi, IMessageContext context,
-            IVodConfigurationService configurationService)
+    [Command("new")]
+    public async Task<Result> AddNewVodConfigurationAsync()
+    {
+        if (_context.Message.Attachments.HasValue)
         {
-            _channelApi = channelApi;
-            _context = context;
-            _configurationService = configurationService;
-        }
+            await _channelApi.CreateMessageAsync(_context.Message.ChannelID.Value,
+                "It appears you may have given me an existing JSON configuration! Validating...");
 
-        [Command("new")]
-        public async Task<Result> AddNewVodConfigurationAsync()
-        {
-            if (_context.Message.Attachments.HasValue)
+            var result = await _configurationService.TryParseVodJsonConfigurationAsync(
+                _context.Message.Attachments.Value.FirstOrDefault(x => x.Filename.Contains(".json")));
+
+            if (!result.IsSuccess)
             {
                 await _channelApi.CreateMessageAsync(_context.Message.ChannelID.Value,
-                    "It appears you may have given me an existing JSON configuration! Validating...");
-
-                var result = await _configurationService.TryParseVodJsonConfigurationAsync(
-                    _context.Message.Attachments.Value.FirstOrDefault(x => x.Filename.Contains(".json")));
-
-                if (!result.IsSuccess)
-                {
-                    await _channelApi.CreateMessageAsync(_context.Message.ChannelID.Value,
-                        $"JSON configuration failed! Reason: {result.ErrorMessage}");
-                    return new UserError(result.ErrorMessage ?? "Malformed or Nonexistent JSON. No specific error returned.");
-                }
-
-                var vodConfiguration = result.VodConfiguration;
-
-                var sb = new StringBuilder();
-                sb.AppendLine("**Configuration successfully validated!**");
-                sb.AppendLine("**This is what I have understood from your configuration file:**");
-                sb.AppendLine();
-                sb.AppendLine("**Game Name:**");
-                sb.AppendLine(vodConfiguration!.GameName);
-                sb.AppendLine();
-
-                for (var i = 0; i < vodConfiguration.Questions.Count; i++)
-                {
-                    var question = vodConfiguration.Questions[i];
-                    sb.Append($"**Question ");
-                    sb.Append(i);
-                    sb.AppendLine(":**");
-                    sb.AppendLine(question.QuestionText);
-                    sb.AppendLine("**Answer Kind:**");
-                    sb.AppendLine(question.UserAnswerKind.ToString());
-
-                    switch (question.UserAnswerKind)
-                    {
-                        case AnswerKind.Text:
-                            break;
-                        case AnswerKind.Integer:
-                            break;
-                        case AnswerKind.Decimal:
-                            break;
-                        case AnswerKind.CustomScale:
-                            sb.AppendLine("**Scale Values:**");
-
-                            sb.Append(question.MinimumScale!.Value);
-                            sb.Append(" Minimum, ");
-                            sb.Append(question.MaximumScale!.Value);
-                            sb.AppendLine(" Maximum.");
-                            break;
-                        case AnswerKind.Percentage:
-                            break;
-                        case AnswerKind.MultipleChoice:
-                            sb.AppendLine("**Answer Options:**");
-                            foreach (var answerOption in question.AnswerOptions!)
-                            {
-                                sb.Append(answerOption.Id);
-                                sb.Append(" - ");
-                                sb.Append(answerOption.OptionTitle);
-
-                                if (answerOption.ShouldRejectIfChosen)
-                                {
-                                    sb.Append(" - ATTENTION: This option will cause an auto rejection!");
-                                }
-
-                                sb.AppendLine();
-                            }
-
-                            break;
-                        case AnswerKind.Url:
-                            break;
-                        default:
-                            throw new ArgumentOutOfRangeException();
-                    }
-
-                    sb.AppendLine();
-                }
-
-                await _channelApi.CreateMessageAsync(_context.Message.ChannelID.Value, sb.ToString());
-                _configurationService.Save(vodConfiguration);
-                return Result.FromSuccess();
+                    $"JSON configuration failed! Reason: {result.ErrorMessage}");
+                return new UserError(
+                    result.ErrorMessage ?? "Malformed or Nonexistent JSON. No specific error returned.");
             }
 
-            //TODO: Implement Q&A format
+            var vodConfiguration = result.VodConfiguration;
 
-            await _channelApi.CreateMessageAsync(_context.Message.ChannelID.Value,
-                "It appears no configuration file has been provided. See `help vodconfig add` for configuration file instructions.");
-            return new UserError("No vodconfig provided.");
+            var sb = new StringBuilder();
+            sb.AppendLine("**Configuration successfully validated!**");
+            sb.AppendLine("**This is what I have understood from your configuration file:**");
+            sb.AppendLine();
+            sb.AppendLine("**Game Name:**");
+            sb.AppendLine(vodConfiguration!.GameName);
+            sb.AppendLine();
+
+            for (var i = 0; i < vodConfiguration.Questions.Count; i++)
+            {
+                var question = vodConfiguration.Questions[i];
+                sb.Append($"**Question ");
+                sb.Append(i);
+                sb.AppendLine(":**");
+                sb.AppendLine(question.QuestionText);
+                sb.AppendLine("**Answer Kind:**");
+                sb.AppendLine(question.UserAnswerKind.ToString());
+
+                switch (question.UserAnswerKind)
+                {
+                    case AnswerKind.Text:
+                        break;
+                    case AnswerKind.Integer:
+                        break;
+                    case AnswerKind.Decimal:
+                        break;
+                    case AnswerKind.CustomScale:
+                        sb.AppendLine("**Scale Values:**");
+
+                        sb.Append(question.MinimumScale!.Value);
+                        sb.Append(" Minimum, ");
+                        sb.Append(question.MaximumScale!.Value);
+                        sb.AppendLine(" Maximum.");
+                        break;
+                    case AnswerKind.Percentage:
+                        break;
+                    case AnswerKind.MultipleChoice:
+                        sb.AppendLine("**Answer Options:**");
+                        foreach (var answerOption in question.AnswerOptions!)
+                        {
+                            sb.Append(answerOption.Id);
+                            sb.Append(" - ");
+                            sb.Append(answerOption.OptionTitle);
+
+                            if (answerOption.ShouldRejectIfChosen)
+                            {
+                                sb.Append(" - ATTENTION: This option will cause an auto rejection!");
+                            }
+
+                            sb.AppendLine();
+                        }
+
+                        break;
+                    case AnswerKind.Url:
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+
+                sb.AppendLine();
+            }
+
+            await _channelApi.CreateMessageAsync(_context.Message.ChannelID.Value, sb.ToString());
+            await _configurationService.Save(vodConfiguration);
+            return Result.FromSuccess();
         }
+
+        //TODO: Implement Q&A format
+
+        await _channelApi.CreateMessageAsync(_context.Message.ChannelID.Value,
+            "It appears no configuration file has been provided. See `help vodconfig add` for configuration file instructions.");
+        return new UserError("No vodconfig provided.");
+    }
+
+    [Command("count")]
+    public async Task<Result> CountVodConfigurationAsync()
+    {
+        var currentConfigurations = await _configurationService.Count();
+        await _channelApi.CreateMessageAsync(_context.Message.ChannelID.Value, $"Current loaded configuration count is: {currentConfigurations}");
+        return Result.FromSuccess();
+    }
+
+    [Command("list")]
+    public async Task<Result> ListVodConfigurationsAsync()
+    {
+        var currentConfigurations = _configurationService.GetAll();
+        var builder = new StringBuilder();
+        builder.AppendLine("Current configurations available:");
+        
+        foreach (var configuration in currentConfigurations)
+        {
+            builder.AppendLine($" - {configuration.GameName}");
+            builder.AppendLine($"   Questions: {configuration.Questions.Count}");
+        }
+        
+        await _channelApi.CreateMessageAsync(_context.Message.ChannelID.Value, builder.ToString());
+        return Result.FromSuccess();
     }
 }

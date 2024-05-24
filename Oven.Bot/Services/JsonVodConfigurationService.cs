@@ -1,22 +1,22 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Oven.Bot.Models;
+using Microsoft.EntityFrameworkCore;
+using Oven.Data;
+using Oven.Data.Models;
 using Remora.Discord.API.Abstractions.Objects;
 
 namespace Oven.Bot.Services
 {
-    public class JsonVodConfigurationService : IVodConfigurationService
+    public class JsonVodConfigurationService(
+        IHttpClientFactory factory,
+        VodConfigurationContext vodConfigurationContext)
+        : IVodConfigurationService
     {
-        private readonly IHttpClientFactory _factory;
-
-        public JsonVodConfigurationService(IHttpClientFactory factory)
-        {
-            _factory = factory;
-        }
-        
         public async Task<(bool IsSuccess, string? ErrorMessage, VodConfigurationModel? VodConfiguration)> TryParseVodJsonConfigurationAsync(IAttachment? first)
         {
             Stream? response = null;
@@ -28,7 +28,7 @@ namespace Oven.Bot.Services
             
             try
             {
-                response = await _factory.CreateClient().GetStreamAsync(first.Url);
+                response = await factory.CreateClient().GetStreamAsync(first.Url);
             }
             catch (HttpRequestException e)
             {
@@ -51,9 +51,25 @@ namespace Oven.Bot.Services
             }
         }
 
-        public void Save(VodConfigurationModel vodConfiguration)
+        public async Task<VodConfigurationModel> Get(string gameName)
         {
-            
+            return await vodConfigurationContext.VodConfigurations.FirstAsync(x => x.GameName == gameName);
+        }
+
+        public async Task Save(VodConfigurationModel vodConfiguration)
+        {
+            vodConfigurationContext.VodConfigurations.Update(vodConfiguration);
+            await vodConfigurationContext.SaveChangesAsync();
+        }
+
+        public async Task<int> Count()
+        {
+            return await vodConfigurationContext.VodConfigurations.CountAsync();
+        }
+
+        public IQueryable<VodConfigurationModel> GetAll()
+        {
+            return vodConfigurationContext.VodConfigurations;
         }
     }
 }
