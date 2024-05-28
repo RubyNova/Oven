@@ -14,6 +14,9 @@ using Remora.Discord.Hosting.Extensions;
 using Remora.Discord.API.Abstractions.Gateway.Commands;
 using Remora.Rest.Core;
 using Remora.Discord.API;
+using Remora.Discord.Interactivity.Extensions;
+using Remora.Discord.Gateway.Extensions;
+using Oven.Bot.Responders;
 
 namespace Oven.Bot;
 
@@ -69,7 +72,9 @@ public class OvenDiscordClient
         .AddCommandTree()
         .WithCommandGroup<TestGroup>()
         .WithCommandGroup<VodConfiguratorGroup>()
-        .Finish();
+        .Finish()
+        .AddInteractivity()
+        .AddResponder<ReadyResponder>();
 
     })
     .ConfigureLogging

@@ -114,6 +114,10 @@ namespace Oven.Bot.Groups
                 _configurationService.Save(vodConfiguration);
                 return Result.FromSuccess();
             }
+            else
+            {
+                
+            }
 
             //TODO: Implement Q&A format
 
